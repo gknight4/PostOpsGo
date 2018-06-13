@@ -72,13 +72,16 @@ func newUser (w http.ResponseWriter, r *http.Request){
 	lo("new user")
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
     lo("error")
+    lo(err)
 //		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	if _, err := getUser(user.Useremail); err == nil {// if user *is* found
+    lo("user exists")
     ReturnJson(w, http.StatusOK, Msr("userexists"))
     return
   } else {
+    lo("new user")
     user.Flags = 1 // standard user
     user.Password, _ = HashPassword (user.Password)
     insertUser(user)
@@ -297,6 +300,8 @@ func unAuthHTTPReturn (w http.ResponseWriter, r *http.Request){
 
 func main() {
 	r := mux.NewRouter()
+	r.HandleFunc("/", corsOptions).Methods("OPTIONS")// 
+	r.HandleFunc("/", corsOptions).Methods("GET")
 	r.HandleFunc("/auth/stringstore", corsOptions).Methods("OPTIONS")
 	r.HandleFunc("/auth/all/stringstore", corsOptions).Methods("OPTIONS")
   
