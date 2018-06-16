@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+  "os"
+//  "path/filepath"
 //  "io/ioutil"
 //	"time"
 	"encoding/json"
@@ -151,16 +153,20 @@ func newTrans (w http.ResponseWriter, r *http.Request){
 func newStringStore (w http.ResponseWriter, r *http.Request){
 /* now receiving an *array* of type: text: entries
  **/  
+//lo("new string store")
 	defer r.Body.Close()
 //  stringType := mux.Vars(r)["type"]
 	addCors(w)
 	var strsto []StringStore
 	if err := json.NewDecoder(r.Body).Decode(&strsto); err != nil {
+//    lo("error")
+//    lo(err)
     ReturnJson(w, http.StatusOK, Msr("err"))
 		return
 	}
 	claims, _ := r.Context().Value("claims").(jwt.MapClaims)
   userId := bson.ObjectIdHex(claims["id"].(string)) ;
+//  lo("saving")
   for _, v := range strsto {
     v.UserId = userId
     lo(v)
@@ -335,11 +341,34 @@ func main() {
 	r.PathPrefix("/open/authenticate").Handler(http.HandlerFunc(corsOptions)).Methods("GET")
 	
 	initMongo()
-	if err := http.ListenAndServe(":6026", r); err != nil {
-		log.Fatal(err)
-	}
+//	if err := http.ListenAndServe(":6026", r); err != nil {
+//		log.Fatal(err)
+//	}
+// func ListenAndServeTLS(addr, certFile, keyFile string, handler Handler) error	
+  name, _ := os.Hostname()
+  if name == "genes" {
+    if err := http.ListenAndServe(":6026", r); err != nil {
+      log.Fatal(err)
+    }
+  } else {
+    err := http.ListenAndServeTLS(":6026", "./ssl/cert.pem", "./ssl/privkey.pem", r)  
+    if err != nil {
+            log.Fatal(err)
+    }	
+  }
 }
 
+/* ssl:
+ * 	err := http.ListenAndServeTLS(":6026", "cert.pem", "privkey.pem", nil)
+ * http.ListenAndServeTLS(":6026", "/etc/letsencrypt/live/postops.us/cert.pem", "/etc/letsencrypt/live/postops.us/privkey.pem", nil)
+ * 
+ * SSLCertificateFile /etc/letsencrypt/live/postops.us/cert.pem
+SSLCertificateKeyFile /etc/letsencrypt/live/postops.us/privkey.pem
+Include /etc/letsencrypt/options-ssl-apache.conf
+SSLCertificateChainFile /etc/letsencrypt/live/postops.us/chain.pem
+</VirtualHost>
+
+ * */
 
 
 /* using context

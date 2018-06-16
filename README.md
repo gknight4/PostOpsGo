@@ -16,6 +16,10 @@ http://localhost:6026
 
 Changelog:
 
+Version: 0.1.5
+
+Added SSL startup if run on server, not dev
+
 Version: 0.1.4
 
 First deployed to PostOps.us
