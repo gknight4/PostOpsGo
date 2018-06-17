@@ -41,6 +41,13 @@ func corsOptions (w http.ResponseWriter, r *http.Request){
 	ReturnJson(w, http.StatusOK, Msr(bToOk(false)))
 }
 
+func rootResponse (w http.ResponseWriter, r *http.Request){
+  lo("root response")
+	defer r.Body.Close()
+	addCors(w)
+	ReturnJson(w, http.StatusOK, Msr("root response"))
+}
+
 func checkUser (w http.ResponseWriter, r *http.Request){
 	defer r.Body.Close()
 	lo("check user")
@@ -92,6 +99,7 @@ func newUser (w http.ResponseWriter, r *http.Request){
 }
 
 func checkAuth (w http.ResponseWriter, r *http.Request){
+  lo("check auth")
 	addCors(w)
 	ReturnJson(w, http.StatusOK, Msr(bToOk(true)))
 }
@@ -148,6 +156,22 @@ func newTrans (w http.ResponseWriter, r *http.Request){
 		return
 	}
 	insertTransaction(trans)
+}
+
+func proxyRequest  (w http.ResponseWriter, r *http.Request){
+	defer r.Body.Close()
+  var req HttpRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+    lo("error")
+    lo(err)
+    ReturnJson(w, http.StatusOK, Msr("err"))
+		return
+	}
+	respData := doProxyRequest(req)
+//	lo(req.Headers)
+//  lo("proxy 1")
+	addCors(w)
+	ReturnJson(w, http.StatusOK, respData)
 }
 
 func newStringStore (w http.ResponseWriter, r *http.Request){
@@ -307,9 +331,10 @@ func unAuthHTTPReturn (w http.ResponseWriter, r *http.Request){
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", corsOptions).Methods("OPTIONS")// 
-	r.HandleFunc("/", corsOptions).Methods("GET")
+	r.HandleFunc("/", rootResponse).Methods("GET")
 	r.HandleFunc("/auth/stringstore", corsOptions).Methods("OPTIONS")
 	r.HandleFunc("/auth/all/stringstore", corsOptions).Methods("OPTIONS")
+	r.HandleFunc("/auth/proxy", corsOptions).Methods("OPTIONS")
   
 	r.HandleFunc("/open/users/{username}", checkUser).Methods("GET")
 	r.HandleFunc("/open/users/{username}", corsOptions).Methods("OPTIONS")
@@ -331,6 +356,7 @@ func main() {
 	r.Handle("/auth/stringstore", AddContext(http.HandlerFunc(newStringStore))).Methods("POST")
 	r.Handle("/auth/stringstore", AddContext(http.HandlerFunc(allStringStores))).Methods("GET")
 	r.Handle("/auth/all/stringstore", AddContext(http.HandlerFunc(setStringStores))).Methods("PUT")
+	r.Handle("/auth/proxy", AddContext(http.HandlerFunc(proxyRequest))).Methods("POST")
 
   //	r.HandleFunc("/auth/transactions", newTrans).Methods("POST")
 	r.Handle("/auth/transactions", AddContext(http.HandlerFunc(newTrans))).Methods("POST")
@@ -358,32 +384,3 @@ func main() {
   }
 }
 
-/* ssl:
- * 	err := http.ListenAndServeTLS(":6026", "cert.pem", "privkey.pem", nil)
- * http.ListenAndServeTLS(":6026", "/etc/letsencrypt/live/postops.us/cert.pem", "/etc/letsencrypt/live/postops.us/privkey.pem", nil)
- * 
- * SSLCertificateFile /etc/letsencrypt/live/postops.us/cert.pem
-SSLCertificateKeyFile /etc/letsencrypt/live/postops.us/privkey.pem
-Include /etc/letsencrypt/options-ssl-apache.conf
-SSLCertificateChainFile /etc/letsencrypt/live/postops.us/chain.pem
-</VirtualHost>
-
- * */
-
-
-/* using context
- func addUserID(rw http.ResponseWriter, req *http.Request, next http.Handler) {
-	ctx := context.WithValue(req.Context(), "userid", req.Header.Get("userid"))
-	req = req.WithContext(ctx)
-	next.ServeHTTP(rw, req)
-}
-
-func useUserID(rw http.ResponseWriter, req *http.Request, next http.Handler) {
-	uid := req.Context().Value("userid")
-	rw.Write([]byte(uid))
-}
- 
- 			ctx := context.WithValue(r.Context(), "claims", claims)
- 			
-
- * */
