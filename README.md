@@ -1,6 +1,14 @@
-These are the files to run the backend server for PostOps.
+These are the files to run the Go backend server for PostOps.
 
-These packages need to be installed:
+The easiest install is just:\
+go get github.com/gknight4/postops-go\
+
+that should install these files, *and* the dependencies.\
+
+Or, you can go straight to git:\
+git clone https://github.com/gknight4/postops-go\
+
+Then these packages need to be installed:
 
 go get github.com/dgrijalva/jwt-go\
 go get github.com/gorilla/mux\
