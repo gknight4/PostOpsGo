@@ -63,12 +63,28 @@ type Cp struct {
 type UsersDAO struct {
 	Server string
 	Database string
+	Username string
+	Password string
 	db *mgo.Database
 }
 
 var userdb = UsersDAO{}
 
 func (u *UsersDAO) Connect() {
+  info := &mgo.DialInfo{
+    Addrs:[]string{u.Server},
+    Timeout: 60*time.Second,
+    Database:"admin",
+    Username: u.Username,
+    Password: u.Password}
+	session, err := mgo.DialWithInfo(info)
+	if err != nil {
+		log.Fatal(err)
+	}
+	u.db = session.DB(u.Database)
+}
+
+func (u *UsersDAO) ConnectO() {
 	session, err := mgo.Dial(u.Server)
 	if err != nil {
 		log.Fatal(err)
@@ -187,9 +203,10 @@ func getUserFromId (id string) (User, error) {
     return userdb.FindByUserId(id)
 }
 
-func checkUserName (username string) bool {
-// return true if the username is found	
-	_, err := userdb.FindByUserName(username)
+func checkUserName (useremail string) bool {
+// return true if the username is found
+  lo(useremail);
+	_, err := userdb.FindByUserEmail(useremail)
 	return err == nil
 }
 
@@ -232,6 +249,9 @@ func initMongo(){
 //	var userdb UsersDAO
 	userdb.Server = "localhost"
 	userdb.Database = "users_db"
+//  lo(userdb) ;
+  userdb.Username = "golang" ;
+  userdb.Password = "WDsdC6uM"
 	userdb.Connect()
 //	testCp()
 	

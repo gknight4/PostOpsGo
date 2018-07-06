@@ -21,8 +21,15 @@ go run *.go
 The server is available at:\
 http://localhost:6026
 
-
 Changelog:
+
+Version 0.2.3
+
+use auth mode for MongoDB
+
+Version 0.2.2
+
+fix check if user exists
 
 Version: 0.2.1
 

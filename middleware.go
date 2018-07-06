@@ -26,6 +26,7 @@ func AddContext(next http.Handler) http.Handler {
 			ctx := context.WithValue(r.Context(), "claims", claims)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
+//      lo("unauth return")
 			unAuthHTTPReturn(w, r)
 //			next.ServeHTTP(w, r)
 		}

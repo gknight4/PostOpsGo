@@ -42,7 +42,7 @@ func corsOptions (w http.ResponseWriter, r *http.Request){
 }
 
 func rootResponse (w http.ResponseWriter, r *http.Request){
-  lo("root response")
+//  lo("root response")
 	defer r.Body.Close()
 	addCors(w)
 	ReturnJson(w, http.StatusOK, Msr("root response"))
@@ -53,7 +53,7 @@ func checkUser (w http.ResponseWriter, r *http.Request){
 	lo("check user")
 	addCors(w)
 	vars := mux.Vars(r)
-        got := checkUserName(vars["username"])
+        got := checkUserName(vars["useremail"])
 	ReturnJson(w, http.StatusOK, Msr(bToOk(got)))
 }
 
@@ -99,7 +99,7 @@ func newUser (w http.ResponseWriter, r *http.Request){
 }
 
 func checkAuth (w http.ResponseWriter, r *http.Request){
-  lo("check auth")
+//  lo("check auth")
 	addCors(w)
 	ReturnJson(w, http.StatusOK, Msr(bToOk(true)))
 }
@@ -206,7 +206,7 @@ func newStringStore (w http.ResponseWriter, r *http.Request){
 
 func allStringStores (w http.ResponseWriter, r *http.Request){
 	defer r.Body.Close()
-  lo("get all string stores");
+//  lo("get all string stores");
 //  stringType := mux.Vars(r)["type"]
 	addCors(w)
 	claims, _ := r.Context().Value("claims").(jwt.MapClaims)
@@ -324,7 +324,7 @@ parent's transactions, not just one child
 
 func unAuthHTTPReturn (w http.ResponseWriter, r *http.Request){
 	addCors(w)
-	ReturnJson(w, http.StatusUnauthorized, Msr(bToOk(false)))
+	ReturnJson(w, http.StatusUnauthorized, Msr("unauth"))
 }
 
 
@@ -336,8 +336,8 @@ func main() {
 	r.HandleFunc("/auth/all/stringstore", corsOptions).Methods("OPTIONS")
 	r.HandleFunc("/auth/proxy", corsOptions).Methods("OPTIONS")
   
-	r.HandleFunc("/open/users/{username}", checkUser).Methods("GET")
-	r.HandleFunc("/open/users/{username}", corsOptions).Methods("OPTIONS")
+	r.HandleFunc("/open/users/{useremail}", checkUser).Methods("GET")
+	r.HandleFunc("/open/users/{useremail}", corsOptions).Methods("OPTIONS")
 	r.HandleFunc("/open/commonpassword/{hash}", corsOptions).Methods("OPTIONS")
 	r.HandleFunc("/open/users", corsOptions).Methods("OPTIONS")
 //	r.Handle("/auth/users", AddContext(http.HandlerFunc(corsOptions))).Methods("OPTIONS")
@@ -372,6 +372,7 @@ func main() {
 //	}
 // func ListenAndServeTLS(addr, certFile, keyFile string, handler Handler) error	
   name, _ := os.Hostname()
+  lo(name)
   if name == "genes" {
     if err := http.ListenAndServe(":6026", r); err != nil {
       log.Fatal(err)
